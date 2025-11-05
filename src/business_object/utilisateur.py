@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional  # indiquer les types attendus pour les arguments, les attributs
 import re  # pour vérifier la validité de l'adresse e-mail
-from utils.mdp import hash_password, verify_password
+from Projet_info_2A.utils.mdp import hash_password, verify_password
 
 
 class Utilisateur:
@@ -13,7 +13,6 @@ class Utilisateur:
     def __init__(
         self,
         id_utilisateur: Optional[int] = None,
-        pseudo: str = "",
         nom: str = "",
         prenom: str = "",
         email: str = "",
@@ -25,7 +24,6 @@ class Utilisateur:
         Constructeur de la classe Utilisateur.
 
         id_utilisateur: Identifiant unique de l'utilisateur (auto-incrémenté en base)
-        pseudo: Pseudonyme choisi par l'utilisateur
         nom: Nom de famille
         prenom: Prénoms
         email: Adresse e-mail de l'utilisateur
@@ -35,7 +33,6 @@ class Utilisateur:
         """
 
         self.id_utilisateur = id_utilisateur
-        self.pseudo = pseudo
         self.nom = nom
         self.prenom = prenom
         self.email = email
@@ -44,8 +41,6 @@ class Utilisateur:
         self.date_creation = date_creation or datetime.now()
 
         # ========================== VALIDATIONS ==========================
-        if not pseudo or pseudo.strip() == "":
-            raise ValueError("Le pseudo ne peut pas être vide")
         if not nom or nom.strip() == "":
             raise ValueError("Le nom ne peut pas être vide")
         if not prenom or prenom.strip() == "":
@@ -70,7 +65,7 @@ class Utilisateur:
         return: str -> "Prénom Nom (pseudo)"
         ------
         """
-        return f"{self.prenom} {self.nom} ({self.pseudo})"
+        return f"{self.prenom} {self.nom}"
 
 
     def set_password(self, plain_password: str) -> None:
@@ -87,7 +82,7 @@ class Utilisateur:
     def __repr__(self):
         """Représentation texte"""
         role_str = "Admin" if self.role else "Participant"
-        return f"<Utilisateur #{self.id_utilisateur} - {self.pseudo} ({role_str})>"
+        return f"<Utilisateur #{self.id_utilisateur} - ({role_str})>"
 
     def to_dict(self) -> dict:
         """
@@ -95,7 +90,6 @@ class Utilisateur:
         """
         return {
             "id_utilisateur": self.id_utilisateur,
-            "pseudo": self.pseudo,
             "nom": self.nom,
             "prenom": self.prenom,
             "email": self.email,
@@ -118,7 +112,6 @@ class Utilisateur:
         
         return Utilisateur(
             id_utilisateur=data.get("id_utilisateur"),
-            pseudo=data.get("pseudo", ""),
             nom=data.get("nom", ""),
             prenom=data.get("prenom", ""),
             email=data.get("email", ""),
