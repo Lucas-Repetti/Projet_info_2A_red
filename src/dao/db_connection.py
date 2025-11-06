@@ -1,33 +1,50 @@
-# dao/db_connection.py
-import os
-import dotenv
 import psycopg2
-from psycopg2.extras import RealDictCursor
-from Projet_info_2A.utils.singleton import Singleton
+import psycopg2.extras
+from contextlib import contextmanager
 
 
-class DBConnection(metaclass=Singleton):
+class DBConnection:
     """
-    Classe de connexion à la base de données
-    Elle permet de n'ouvrir qu'une seule et unique connexion
+    Classe utilitaire gérant la connexion à la base PostgreSQL.
+    Utilisée comme un gestionnaire de contexte ("with DBConnection().connection as conn:").
     """
 
-    def __init__(self):
-        """Ouverture de la connexion"""
-        dotenv.load_dotenv()
-
-        self.__connection = psycopg2.connect(
-            host=os.environ["POSTGRES_HOST"],
-            port=os.environ["POSTGRES_PORT"],
-            database=os.environ["POSTGRES_DATABASE"],
-            user=os.environ["POSTGRES_USER"],
-            password=os.environ["POSTGRES_PASSWORD"],
-            options=f"-c search_path={os.environ['POSTGRES_SCHEMA']}",
-            cursor_factory=RealDictCursor,
-        )
-
-        self.__connection.autocommit = True
+    def __init__(
+        self,
+        host: str = "localhost",
+        dbname: str = "projet_info",
+        user: str = "postgres",
+        password: str = "postgres",
+        port: int = 5432,
+    ):
+        self.connection_params = {
+            "host": host,
+            "dbname": dbname,
+            "user": user,
+            "password": password,
+            "port": port,
+        }
 
     @property
+    @contextmanager
     def connection(self):
-        return self.__connection
+        """
+        Fournit une connexion PostgreSQL utilisable dans un bloc 'with'.
+        Gère automatiquement le commit / rollback et la fermeture.
+        """
+        conn = None
+        try:
+            # Connexion avec dict cursor (résultats sous forme de dicts)
+            conn = psycopg2.connect(**self.connection_params)
+            with conn.cursor() as cursor:
+                cursor.execute("SET search_path TO projet;")
+            yield conn
+            conn.commit()
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            print(f"[ERREUR DB] {e}")
+            raise
+        finally:
+            if conn:
+                conn.close()

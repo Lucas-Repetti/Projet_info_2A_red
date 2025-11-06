@@ -9,7 +9,7 @@ class BusDAO:
     def creer(bus: Bus) -> Bus:
         """Insère un nouveau bus dans la base de données."""
         query = """
-            INSERT INTO bus (id_event, sens, description, heure_depart)
+            INSERT INTO bus (id_event, sens, heure_depart)
             VALUES (%s, %s, %s, %s)
             RETURNING id_bus;
         """
@@ -20,7 +20,6 @@ class BusDAO:
                     (
                         bus.id_event,
                         bus.sens,
-                        bus.description,
                         bus.heure_depart,
                     ),
                 )
@@ -59,12 +58,3 @@ class BusDAO:
                 cursor.execute(query)
                 rows = cursor.fetchall()
                 return [Bus.from_dict(row) for row in rows]
-   
-    @staticmethod
-    def supprimer(id_bus: int) -> bool:
-        """Supprime un bus par son ID."""
-        query = "DELETE FROM bus WHERE id_bus = %s"
-        with DBConnection().connection as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, (id_bus,))
-                return cursor.rowcount > 0

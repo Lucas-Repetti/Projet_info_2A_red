@@ -1,5 +1,4 @@
-from
- Projet_info_2A.src.dao.db_connection import DBConnection
+from Projet_info_2A.src.dao.db_connection import DBConnection
 from typing import Optional, List
 from Projet_info_2A.src.business_object.inscription import Inscription
 
@@ -19,20 +18,16 @@ class InscriptionDAO:
                     cursor.execute(
                         """
                         INSERT INTO inscription 
-                        (code_reservation, boit, created_by, mode_paiement, 
-                         id_event, nom_event, id_bus_aller, id_bus_retour)
-                        VALUES (%(code_reservation)s, %(boit)s, %(created_by)s, 
-                                %(mode_paiement)s, %(id_event)s, %(nom_event)s, 
+                        (created_by, 
+                         id_event, id_bus_aller, id_bus_retour)
+                        VALUES (%(created_by)s, 
+                                %(id_event)s, 
                                 %(id_bus_aller)s, %(id_bus_retour)s)
                         RETURNING code_reservation;
                         """,
                         {
-                            "code_reservation": inscription.code_reservation,
-                            "boit": inscription.boit,
                             "created_by": inscription.created_by,
-                            "mode_paiement": inscription.mode_paiement,
                             "id_event": inscription.id_event,
-                            "nom_event": inscription.nom_event,
                             "id_bus_aller": inscription.id_bus_aller,
                             "id_bus_retour": float(inscription.id_bus_retour),
                         },
@@ -58,8 +53,8 @@ class InscriptionDAO:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                        SELECT code_reservation, created_by,
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription
                         WHERE code_reservation = %(code_reservation)s;
                         """,
@@ -69,11 +64,8 @@ class InscriptionDAO:
                     if row:
                         return Inscription(
                             code_reservation=row["code_reservation"],
-                            boit=row["boit"],
                             created_by=row["created_by"],
-                            mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )
@@ -95,8 +87,8 @@ class InscriptionDAO:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                        SELECT code_reservation, created_by,
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription
                         WHERE id_event = %(id_event)s;
                         """,
@@ -106,11 +98,8 @@ class InscriptionDAO:
                     return [
                         Inscription(
                             code_reservation=row["code_reservation"],
-                            boit=row["boit"],
                             created_by=row["created_by"],
-                            mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )
@@ -131,8 +120,8 @@ class InscriptionDAO:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """
-                        SELECT code_reservation, boit, created_by, mode_paiement,
-                               id_event, nom_event, id_bus_aller, id_bus_retour
+                        SELECT code_reservation, created_by,
+                               id_event, id_bus_aller, id_bus_retour
                         FROM inscription;
                         """
                     )
@@ -140,11 +129,8 @@ class InscriptionDAO:
                     return [
                         Inscription(
                             code_reservation=row["code_reservation"],
-                            boit=row["boit"],
                             created_by=row["created_by"],
-                            mode_paiement=row["mode_paiement"],
                             id_event=row["id_event"],
-                            nom_event=row["nom_event"],
                             id_bus_aller=row["id_bus_aller"],
                             id_bus_retour=row["id_bus_retour"]
                         )
