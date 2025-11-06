@@ -26,13 +26,9 @@ class EvenementService:
 
     def creer_evenement(
         self,
-        titre: str,
-        lieu: str,
         date_evenement,
         capacite_max: int,
         created_by: int,
-        description_evenement: str = "",
-        tarif: float = 0.00
     ) -> Optional[Evenement]:
         """
         Crée un nouvel événement et le persiste en base de données.
@@ -50,18 +46,14 @@ class EvenementService:
         try:
             # Créer l'objet métier (les validations sont faites dans le constructeur)
             nouvel_evenement = Evenement(
-                titre=titre,
-                lieu=lieu,
                 date_evenement=date_evenement,
                 capacite_max=capacite_max,
                 created_by=created_by,
-                description_evenement=description_evenement,
-                tarif=tarif
             )
 
             # Persister en base de données
             if self.evenement_dao.creer(nouvel_evenement):
-                print(f"Événement '{titre}' créé avec succès.")
+                print(f"Événement '{date_evenement}' créé avec succès.")
                 return nouvel_evenement  # L'objet a maintenant son ID
             else:
                 print("Erreur lors de la création de l'événement.")
@@ -75,8 +67,6 @@ class EvenementService:
         self,
         id_event: int,
         id_utilisateur: int,
-        boit: bool,
-        mode_paiement: str,
         id_bus_aller: Optional[int] = None,
         id_bus_retour: Optional[int] = None
     ) -> bool:
@@ -129,8 +119,6 @@ class EvenementService:
         nouvelle_inscription = Inscription(
             id_utilisateur=id_utilisateur,
             id_event=id_event,
-            boit=boit,
-            mode_paiement=mode_paiement,
             id_bus_aller=id_bus_aller,
             id_bus_retour=id_bus_retour,
         )
@@ -138,7 +126,7 @@ class EvenementService:
         # Persister l'inscription en base de données
         inscription_creee = self.inscription_dao.creer(nouvelle_inscription)
         if inscription_creee:
-            print(f"{utilisateur.nom} {utilisateur.prenom} est inscrit à {evenement.titre}.")
+            print(f"{utilisateur.nom} {utilisateur.prenom} est inscrit à {evenement.id_event}.")
             return True
         else:
             print("Erreur lors de la création de l'inscription.")
@@ -171,61 +159,10 @@ class EvenementService:
         # Persister l'association en base (selon votre implémentation DAO)
         # Cela pourrait être une mise à jour de l'événement ou une table de liaison
         if self.evenement_dao.modifier(evenement):
-            print(f"Bus {id_bus} associé à l'événement {evenement.titre}.")
+            print(f"Bus {id_bus} associé à l'événement {evenement.id_event}.")
             return True
         else:
             print("Erreur lors de l'association du bus.")
-            return False
-            
-#######################################################################################
-#optionnel
-#######################################################################################
-
-    def desinscrire_utilisateur(self, id_event: int, id_utilisateur: int) -> bool:
-        """
-        Désinscrit un utilisateur d'un événement.
-        Supprime l'inscription de la base de données.
-
-        id_event: ID de l'événement
-        id_utilisateur: ID de l'utilisateur
-
-        return: True si désinscription réussie, False sinon
-        """
-        # Récupérer l'événement et l'utilisateur
-        evenement = self.evenement_dao.get_by_id(id_event)
-        if not evenement:
-            print(f"Événement {id_event} introuvable.")
-            return False
-
-        utilisateur = self.utilisateur_dao.get_by_id(id_utilisateur)
-        if not utilisateur:
-            print(f"Utilisateur {id_utilisateur} introuvable.")
-            return False
-
-        # Charger les inscriptions
-        evenement.inscriptions = self.inscription_dao.get_by_event(id_event)
-
-        # Trouver l'inscription correspondante
-        inscription_a_supprimer = None
-        for insc in evenement.inscriptions:
-            if insc.id_utilisateur == id_utilisateur:
-                inscription_a_supprimer = insc
-                break
-
-        if not inscription_a_supprimer:
-            print(
-                f"{utilisateur.nom} {utilisateur.prenom} n'est pas inscrit à cet événement."
-            )
-            return False
-
-        # Supprimer de la base de données
-        if self.inscription_dao.delete(id_event, id_utilisateur):
-            print(
-                f"{utilisateur.nom} {utilisateur.prenom} est désinscrit de {evenement.titre}."
-            )
-            return True
-        else:
-            print("Erreur lors de la suppression de l'inscription.")
             return False
 
     def get_participants(self, id_event: int) -> List:
@@ -316,39 +253,3 @@ class EvenementService:
                 evenements_disponibles.append(evenement)
         
         return evenements_disponibles
-
-    def modifier_evenement(self, evenement: Evenement) -> bool:
-        """
-        Modifie un événement existant.
-
-        evenement: Objet Evenement avec les modifications
-
-        return: True si modification réussie, False sinon
-        """
-        if self.evenement_dao.modifier(evenement):
-            print(f"Événement '{evenement.titre}' modifié avec succès.")
-            return True
-        else:
-            print("Erreur lors de la modification de l'événement.")
-            return False
-
-    def supprimer_evenement(self, id_event: int) -> bool:
-        """
-        Supprime un événement et toutes ses inscriptions associées.
-
-        id_event: ID de l'événement à supprimer
-
-        return: True si suppression réussie, False sinon
-        """
-        # Supprimer d'abord toutes les inscriptions
-        inscriptions = self.inscription_dao.get_by_event(id_event)
-        for inscription in inscriptions:
-            self.inscription_dao.delete(id_event, inscription.id_utilisateur)
-
-        # Supprimer l'événement
-        if self.evenement_dao.delete(id_event):
-            print(f"Événement {id_event} supprimé avec succès.")
-            return True
-        else:
-            print("Erreur lors de la suppression de l'événement.")
-            return False

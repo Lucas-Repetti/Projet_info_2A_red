@@ -33,11 +33,8 @@ class InscriptionService:
 
     def creer_inscription(
         self,
-        boit: bool,
         created_by: int,
-        mode_paiement: str,
         id_event: str,
-        nom_event: str,
         id_bus_aller: str = "",
         id_bus_retour: str = ""
     ) -> Optional[Inscription]:
@@ -61,12 +58,12 @@ class InscriptionService:
         # Validation : l'événement est-il complet ?
         nb_inscrits = self.inscription_dao.compter_par_evenement(id_event)
         if hasattr(evenement, 'capacite_max') and nb_inscrits >= evenement.capacite_max:
-            print(f"Erreur : Événement {nom_event} complet ({nb_inscrits}/{evenement.capacite_max})")
+            print(f"Erreur : Événement {id_event} complet ({nb_inscrits}/{evenement.capacite_max})")
             return None
 
         # Validation : l'utilisateur est-il déjà inscrit ?
         if self.est_deja_inscrit(created_by, id_event):
-            print(f"Erreur : L'utilisateur {created_by} est déjà inscrit à {nom_event}")
+            print(f"Erreur : L'utilisateur {created_by} est déjà inscrit à {id_event}")
             return None
 
         # Génération du code de réservation
@@ -76,11 +73,8 @@ class InscriptionService:
         try:
             inscription = Inscription(
                 code_reservation=code_reservation,
-                boit=boit,
                 created_by=created_by,
-                mode_paiement=mode_paiement,
                 id_event=id_event,
-                nom_event=nom_event,
                 id_bus_aller=id_bus_aller,
                 id_bus_retour=id_bus_retour
             )
@@ -151,17 +145,9 @@ class InscriptionService:
         inscriptions = self.inscription_dao.trouver_par_id_evenement(id_evenement)
         
         total = len(inscriptions)
-        nb_buveurs = sum(1 for insc in inscriptions if insc.boit)
-        nb_especes = sum(1 for insc in inscriptions if insc.mode_paiement == "espèce")
-        nb_en_ligne = sum(1 for insc in inscriptions if insc.mode_paiement == "en ligne")
         
         return {
             "total_inscrits": total,
-            "nombre_buveurs": nb_buveurs,
-            "nombre_non_buveurs": total - nb_buveurs,
-            "paiements_espece": nb_especes,
-            "paiements_en_ligne": nb_en_ligne,
-            "paiements_non_definis": total - nb_especes - nb_en_ligne
         }
 
     def verifier_disponibilite_evenement(self, id_evenement: str) -> dict:

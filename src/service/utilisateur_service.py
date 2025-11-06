@@ -16,7 +16,7 @@ class UtilisateurService:
     # ======================================================
     # === Création d'un compte utilisateur =================
     # ======================================================
-    def creer_compte(self, pseudo: str, nom: str, prenom: str,
+    def creer_compte(self, nom: str, prenom: str,
                      email: str, mot_de_passe: str, role: bool = False) -> Utilisateur | None:
         """
         Crée un nouvel utilisateur après vérifications.
@@ -35,16 +35,11 @@ class UtilisateurService:
             print("Cet email est déjà utilisé.")
             return None
 
-        if self.utilisateur_dao.pseudo_existe(pseudo):
-            print("Ce pseudo est déjà pris.")
-            return None
-
         # Hachage du mot de passe
         mot_de_passe_hache = hash_password(mot_de_passe)
 
         # Création de l'objet métier
         nouvel_utilisateur = Utilisateur(
-            pseudo=pseudo,
             nom=nom,
             prenom=prenom,
             email=email,
@@ -56,7 +51,7 @@ class UtilisateurService:
         utilisateur_cree = self.utilisateur_dao.creer(nouvel_utilisateur)
 
         if utilisateur_cree:
-            print(f"Utilisateur '{pseudo}' créé avec succès.")
+            print(f"Utilisateur '{prenom}' créé avec succès.")
             return utilisateur_cree
         else:
             print("Erreur lors de la création de l'utilisateur.")
@@ -81,7 +76,7 @@ class UtilisateurService:
             print("Mot de passe incorrect.")
             return None
 
-        print(f"Connexion réussie : {utilisateur.pseudo}")
+        print(f"Connexion réussie : {utilisateur.prenom}")
         return utilisateur
 
     # ======================================================
@@ -94,35 +89,3 @@ class UtilisateurService:
         utilisateurs = self.utilisateur_dao.trouver_tous()
         print(f"{len(utilisateurs)} utilisateur(s) trouvé(s).")
         return utilisateurs
-
-    # ======================================================
-    # === Suppression (admin uniquement) ===================
-    # ======================================================
-    def supprimer_utilisateur(self, admin: Utilisateur, id_utilisateur: int) -> bool:
-        """
-        Supprime un utilisateur, uniquement si l'action est effectuée par un admin.
-
-        admin: objet Utilisateur qui effectue l'action
-        id_utilisateur: ID de l'utilisateur à supprimer
-
-        return: True si suppression réussie, False sinon
-        """
-        # Vérifier les droits d’accès
-        if not admin.is_admin:
-            print("Vous n'avez pas les droits pour supprimer un utilisateur.")
-            return False
-
-        # Vérifier l’existence de l’utilisateur à supprimer
-        utilisateur_cible = self.utilisateur_dao.get_by_id(id_utilisateur)
-        if not utilisateur_cible:
-            print(f"Aucun utilisateur trouvé avec l'ID {id_utilisateur}.")
-            return False
-
-
-        # Suppression via la DAO
-        suppression_ok = self.utilisateur_dao.supprimer(id_utilisateur)
-        if suppression_ok:
-            print(f"Utilisateur '{utilisateur_cible.pseudo}' supprimé avec succès.")
-        else:
-            print("Erreur lors de la suppression de l'utilisateur.")
-        return suppression_ok
