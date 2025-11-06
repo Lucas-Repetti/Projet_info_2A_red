@@ -1,13 +1,10 @@
 from datetime import datetime
-from Projet_info_2A.src.business_object.utilisateur import Utilisateur
-from Projet_info_2A.src.business_object.evenement import Evenement  
 from datetime import date
 """import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException"""
 
 
 class Inscription:
-    _compteurs = {}
 
     """
     Classe métier représentant une inscription dans un évènement.
@@ -17,11 +14,8 @@ class Inscription:
     def __init__(
         self,
         code_reservation: int,
-        boit: bool = False,
         id_utilisateur: int = None,
-        mode_paiement: str = "",
         id_event: str = "",
-        nom_event: str = "",
         id_bus_aller: str = "",
         id_bus_retour: str = ""
     ):
@@ -31,23 +25,12 @@ class Inscription:
         # ========================== VALIDATIONS ==========================
         if not isinstance(code_reservation, int) or code_reservation <= 0:
             raise ValueError("Le code de réservation doit être un entier positif.")
-
-        if not isinstance(boit, bool):
-            raise TypeError("Le champ 'boit' doit être de type bool.")
-
         if id_utilisateur is None:
             raise ValueError("L'attribut 'id_utilisateur' (ID utilisateur) est obligatoire.")
         if not isinstance(id_utilisateur, int):
             raise TypeError("L'attribut 'id_utilisateur' doit être un entier.")
-
-        if mode_paiement not in ("espèce", "en ligne", ""):
-            raise ValueError("Le mode de paiement doit être 'espèce', 'en ligne' ou vide.")
-
         if not id_event or not isinstance(id_event, str):
             raise ValueError("L'ID de l'événement est obligatoire et doit être une chaîne.")
-        if not nom_event or not isinstance(nom_event, str):
-            raise ValueError("Le nom de l'événement est obligatoire et doit être une chaîne.")
-
         if not isinstance(id_bus_aller, str):
             raise TypeError("L'identifiant du bus aller doit être une chaîne de caractères.")
         if not isinstance(id_bus_retour, str):
@@ -55,16 +38,9 @@ class Inscription:
         # =================================================================
 
         # ========================== INITIALISATION ==========================
-        if nom_event not in Inscription._compteurs:
-            Inscription._compteurs[nom_event] = 0
-        Inscription._compteurs[nom_event] += 1
-
         self.code_reservation = code_reservation
-        self.boit = boit
         self.id_utilisateur = id_utilisateur
-        self.mode_paiement = mode_paiement
         self.id_event = id_event
-        self.nom_event = nom_event
         self.id_bus_aller = id_bus_aller
         self.id_bus_retour = id_bus_retour
         self.date_creation = datetime.now()
@@ -104,11 +80,8 @@ class Inscription:
         """Convertit l'objet en dictionnaire"""
         return {
             "code_reservation": self.code_reservation,
-            "boit": self.boit,
             "id_utilisateur": self.id_utilisateur,
-            "mode_paiement": self.mode_paiement,
             "id_event": self.id_event,
-            "nom_event": self.nom_event,
             "id_bus_aller": self.id_bus_aller,
             "id_bus_retour": self.id_bus_retour,
             "date_creation": self.date_creation.isoformat(),
@@ -119,11 +92,8 @@ class Inscription:
         """Créer un objet Inscription à partir d'un dictionnaire"""
         return Inscription(
             code_reservation=data.get("code_reservation"),
-            boit=data.get("boit", False),
             id_utilisateur=data.get("id_utilisateur"),
-            mode_paiement=data.get("mode_paiement", ""),
             id_event=data.get("id_event", ""),
-            nom_event=data.get("nom_event", ""),
             id_bus_aller=data.get("id_bus_aller", ""),
             id_bus_retour=data.get("id_bus_retour", ""),
         )

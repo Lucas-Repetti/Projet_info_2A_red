@@ -1,40 +1,69 @@
 class Bus:
     """
     Classe métier représentant un bus pour un trajet (vers l'évènement ou au retour de l'évènement).
-    Cette classe contient uniquement la logique métier et  les attributs de l'entité.
+    Cette classe contient uniquement la logique métier et les attributs de l'entité.
     """
-    def __init__(self, id_bus, id_event, sens, description, heure_depart):
-        """ Constructeur de la classe Bus.
-        
-            id_bus : Identifiant unique du bus (auto-incrémenté de base)
-            id_event : Identifiant de l'évènement auquel le bus est attribué
-            sens : aller ou retour de l'évènement ("Aller" ou "Retour")
-            description : liste des arrêts intermédiaires (max 100 caractères)
-            heure_depart : heure de départ du bus
+
+    def __init__(self, id_bus, id_event, sens):
+        """
+        Constructeur de la classe Bus.
+
+        id_bus : Identifiant unique du bus (auto-incrémenté en base)
+        id_event : Identifiant de l'évènement auquel le bus est attribué
+        sens : aller ou retour de l'évènement ("Aller" ou "Retour")
         """
 
         # ========================== VALIDATIONS ==========================
-        if not id_event or id_event is None:
+        if id_event is None:
             raise ValueError("L'identifiant de l'évènement doit être renseigné")
 
         if not sens or sens.strip() == "":
             raise ValueError("Le sens ne peut pas être vide")
-        if sens != "Aller" and sens != "Retour" :
+        if sens not in ("Aller", "Retour"):
             raise ValueError("Le sens doit être 'Aller' ou 'Retour'")
-
-        if not description or description == [] or description == [''] :
-            raise ValueError("Les arrêts intermédiaires doivent être renseignés, sinon écrire ['direct']")
-
-        if not heure_depart:
-            raise ValueError("L'heure de départ du bus est obligatoire")
         # =================================================================
 
-        
         self.id_bus = id_bus
         self.id_event = id_event
-        if sens == "Aller":
-            self.sens = True
-        else:
-            self.sens = False
-        self.description = description
-        self.heure_depart = heure_depart
+        # On stocke le sens sous forme booléenne pour simplifier les traitements
+        self.sens = True if sens == "Aller" else False
+
+    # ************************ MÉTHODES MÉTIER ************************
+    def get_sens_str(self) -> str:
+        """Retourne 'Aller' ou 'Retour' selon le booléen interne."""
+        return "Aller" if self.sens else "Retour"
+
+    def __repr__(self) -> str:
+        """Représentation technique de l'objet."""
+        return f"<Bus #{self.id_bus} (event={self.id_event}, sens={self.get_sens_str()})>"
+
+    # ************************ MÉTHODES DE SÉRIALISATION ************************
+    def to_dict(self) -> dict:
+        """
+        Transforme l'objet Bus en dictionnaire pour échange avec la DAO ou une API.
+        """
+        return {
+            "id_bus": self.id_bus,
+            "id_event": self.id_event,
+            # On reconvertit le booléen en texte pour cohérence avec la base/API
+            "sens": self.get_sens_str(),
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "Bus":
+        """
+        Crée une instance de Bus à partir d'un dictionnaire.
+        data : dict contenant les champs du bus.
+        """
+        if not data:
+            raise ValueError("Les données du bus ne peuvent pas être vides")
+
+        id_bus = data.get("id_bus")
+        id_event = data.get("id_event")
+        sens = data.get("sens")
+
+        # Si sens est stocké en booléen en base (ex: True/False), on convertit vers texte
+        if isinstance(sens, bool):
+            sens = "Aller" if sens else "Retour"
+
+        return Bus(id_bus=id_bus, id_event=id_event, sens=sens)
